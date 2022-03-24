@@ -18,7 +18,7 @@ build: $(NAME) ## Builds a dynamic package.
 
 $(NAME): $(wildcard *.go) $(wildcard */*.go)
 	@echo "+ $@"
-	$(GO) build -tags "$(BUILDTAGS)" ${GO_LDFLAGS} -o $(NAME) .
+	$(GO) build -tags "$(BUILDTAGS)" ${GO_LDFLAGS} -o $(NAME) ./cmd/oxide-cloud-controller-manager
 
 all: clean build fmt lint test staticcheck vet install ## Runs a clean, build, fmt, lint, test, staticcheck, vet and install.
 
