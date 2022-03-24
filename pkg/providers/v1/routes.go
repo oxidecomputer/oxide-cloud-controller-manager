@@ -7,10 +7,11 @@ import (
 )
 
 type routes struct {
+	cloud *oxideCloud
 }
 
-func newRoutes() cloudprovider.Routes {
-	return &routes{}
+func newRoutes(cloud *oxideCloud) cloudprovider.Routes {
+	return &routes{cloud: cloud}
 }
 
 // Routes is an abstract, pluggable interface for advanced routing rules.

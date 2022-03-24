@@ -3,6 +3,7 @@ package oxide
 import (
 	"fmt"
 	"io"
+	"os"
 
 	oxide "github.com/oxidecomputer/oxide.go"
 	cloudprovider "k8s.io/cloud-provider"
@@ -11,10 +12,24 @@ import (
 // ProviderName is the name of this cloud provider.
 const ProviderName = "oxide"
 
-type cloud struct {
-	client *oxide.Client
+type oxideCloud struct {
+	client       *oxide.Client
+	organization string
+	project      string
 }
 
+type cloud struct {
+	oxide       *oxideCloud
+	instancesV2 cloudprovider.InstancesV2
+	routes      cloudprovider.Routes
+}
+
+// In order to create the cloud provider we need the following environment variables:
+// - OXIDE_HOST
+// - OXIDE_TOKEN
+// - OXIDE_ORGANIZATION
+// - OXIDE_PROJECT
+// TODO: can we introspect the values for these from the instance metadata instead?
 func newCloud() (cloudprovider.Interface, error) {
 	// Create a new client with your token and host parsed from the environment
 	// variables: OXIDE_TOKEN, OXIDE_HOST.
@@ -23,8 +38,16 @@ func newCloud() (cloudprovider.Interface, error) {
 		return nil, fmt.Errorf("unable to create oxide api client: %v", err)
 	}
 
+	ox := &oxideCloud{
+		client:       client,
+		organization: os.Getenv("OXIDE_ORGANIZATION"),
+		project:      os.Getenv("OXIDE_PROJECT"),
+	}
+
 	return &cloud{
-		client: client,
+		oxide:       ox,
+		instancesV2: newInstancesV2(ox),
+		routes:      newRoutes(ox),
 	}, nil
 }
 
@@ -56,7 +79,7 @@ func (c *cloud) Instances() (cloudprovider.Instances, bool) {
 // API calls to the cloud provider when registering and syncing nodes. Implementation of this interface will
 // disable calls to the Zones interface. Also returns true if the interface is supported, false otherwise.
 func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) {
-	return newInstances(), true
+	return c.instancesV2, true
 }
 
 // Zones returns a zones interface. Also returns true if the interface is supported, false otherwise.
@@ -73,7 +96,7 @@ func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
 
 // Routes returns a routes interface along with whether the interface is supported.
 func (c *cloud) Routes() (cloudprovider.Routes, bool) {
-	return newRoutes(), true
+	return c.routes, true
 }
 
 // ProviderName returns the cloud provider ID.
