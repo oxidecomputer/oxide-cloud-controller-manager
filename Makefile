@@ -69,7 +69,7 @@ cover: ## Runs go test with coverage.
 .PHONY: install
 install: ## Installs the executable or package.
 	@echo "+ $@"
-	$(GO) install -a -tags "$(BUILDTAGS)" ${GO_LDFLAGS} .
+	$(GO) install -a -tags "$(BUILDTAGS)" ${GO_LDFLAGS} ./cmd/oxide-cloud-controller-manager
 
 .PHONY: clean
 clean: ## Cleanup any build binaries or packages.
