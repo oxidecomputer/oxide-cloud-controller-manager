@@ -96,7 +96,8 @@ func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
 
 // Routes returns a routes interface along with whether the interface is supported.
 func (c *cloud) Routes() (cloudprovider.Routes, bool) {
-	return c.routes, true
+	// TODO: Return false for now since it is not implemented.
+	return c.routes, false
 }
 
 // ProviderName returns the cloud provider ID.
