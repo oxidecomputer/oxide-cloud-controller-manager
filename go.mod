@@ -3,10 +3,12 @@ module github.com/oxidecomputer/cloud-provider-oxide
 go 1.17
 
 require (
+	github.com/oxidecomputer/oxide.go v0.0.7-rc.4.0.20220317015218-f2dd1f54c185
+	k8s.io/api v0.23.5
 	k8s.io/apimachinery v0.23.5
 	k8s.io/cloud-provider v0.23.5
 	k8s.io/component-base v0.23.5
-	k8s.io/klog/v2 v2.60.1
+	k8s.io/klog/v2 v2.90.1
 )
 
 require (
@@ -47,7 +49,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/oxidecomputer/oxide.go v0.0.7-rc.4.0.20220317015218-f2dd1f54c185 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -88,7 +89,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	k8s.io/api v0.23.5 // indirect
 	k8s.io/apiserver v0.23.5 // indirect
 	k8s.io/client-go v0.23.5 // indirect
 	k8s.io/component-helpers v0.23.5 // indirect
