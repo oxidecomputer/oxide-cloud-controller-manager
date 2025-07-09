@@ -1,0 +1,4 @@
+= Oxide Cloud Controller Manager
+
+The Oxide Cloud Controller Manager implements the
+https://pkg.go.dev/k8s.io/cloud-provider#Interface[`cloudprovider.Interface`].
