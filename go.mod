@@ -3,9 +3,9 @@ module github.com/oxidecomputer/oxide-cloud-controller-manager
 go 1.24.5
 
 require (
-	k8s.io/apimachinery v0.33.2
+	k8s.io/apimachinery v0.33.3
 	k8s.io/cloud-provider v0.33.2
-	k8s.io/component-base v0.33.2
+	k8s.io/component-base v0.33.3
 	k8s.io/klog/v2 v2.130.1
 )
 
@@ -92,9 +92,9 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.33.2 // indirect
+	k8s.io/api v0.33.3 // indirect
 	k8s.io/apiserver v0.33.2 // indirect
-	k8s.io/client-go v0.33.2 // indirect
+	k8s.io/client-go v0.33.3 // indirect
 	k8s.io/component-helpers v0.33.2 // indirect
 	k8s.io/controller-manager v0.33.2 // indirect
 	k8s.io/kms v0.33.2 // indirect
