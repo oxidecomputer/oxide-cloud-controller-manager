@@ -119,8 +119,8 @@ github.com/onsi/ginkgo/v2 v2.21.0 h1:7rg/4f3rB88pb5obDgNZrNHrQ4e6WpjonchcpuBRnZM
 github.com/onsi/ginkgo/v2 v2.21.0/go.mod h1:7Du3c42kxCUegi0IImZ1wUQzMBVecgIHjR1C+NkhLQo=
 github.com/onsi/gomega v1.35.1 h1:Cwbd75ZBPxFSuZ6T+rN/WCb/gOc6YgFBXLlZLhC7Ds4=
 github.com/onsi/gomega v1.35.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
-github.com/oxidecomputer/oxide.go v0.5.0 h1:bT5FPUmczVcS84NCLdJZ5PAWHMhINz99QQVLImnd5Sc=
-github.com/oxidecomputer/oxide.go v0.5.0/go.mod h1:4gfHlxdBQLs/34UbChPvINd+pGNAnGlASRGEd4xIz1Y=
+github.com/oxidecomputer/oxide.go v0.6.0 h1:5JhdnjKViOrH+O4LvIu0/ka2LAdn8/vQGvmbF1/tzOA=
+github.com/oxidecomputer/oxide.go v0.6.0/go.mod h1:4gfHlxdBQLs/34UbChPvINd+pGNAnGlASRGEd4xIz1Y=
 github.com/pelletier/go-toml v1.9.5 h1:4yBQzkHv+7BHq2PQUZF3Mx0IYxG7LsP222s7Agd3ve8=
 github.com/pelletier/go-toml v1.9.5/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
