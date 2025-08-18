@@ -3,7 +3,7 @@ module github.com/oxidecomputer/oxide-cloud-controller-manager
 go 1.25.0
 
 require (
-	github.com/oxidecomputer/oxide.go v0.5.0
+	github.com/oxidecomputer/oxide.go v0.6.0
 	k8s.io/api v0.33.3
 	k8s.io/apimachinery v0.33.3
 	k8s.io/client-go v0.33.3
