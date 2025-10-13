@@ -1,0 +1,164 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oxide-cloud-controller-manager
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oxide-cloud-controller-manager
+  template:
+    metadata:
+      labels:
+        app: oxide-cloud-controller-manager
+    spec:
+      dnsPolicy: Default
+      hostNetwork: true
+      serviceAccountName: oxide-cloud-controller-manager
+      priorityClassName: system-cluster-critical
+      tolerations:
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          value: "true"
+          effect: "NoSchedule"
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
+        - key: "node-role.kubernetes.io/control-plane"
+          effect: NoSchedule
+      containers:
+      - image: docker.io/sudomateo/oxide-cloud-controller-manager:latest
+        name: oxide-cloud-controller-manager
+        command:
+          - "/usr/bin/oxide-cloud-controller-manager"
+          - "--cloud-provider=oxide"
+          - "--allow-untagged-cloud=true" # TODO: Remove.
+        resources:
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        env:
+          - name: OXIDE_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: oxide-cloud-controller-manager
+                key: oxide-host
+          - name: OXIDE_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: oxide-cloud-controller-manager
+                key: oxide-token
+          - name: OXIDE_PROJECT
+            valueFrom:
+              configMapKeyRef:
+                name: oxide-cloud-controller-manager
+                key: oxide-project
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: oxide-cloud-controller-manager
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: system:oxide-cloud-controller-manager
+rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - nodes/status
+  verbs:
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services/status
+  verbs:
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: system:oxide-cloud-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:oxide-cloud-controller-manager
+subjects:
+- kind: ServiceAccount
+  name: oxide-cloud-controller-manager
+  namespace: kube-system
