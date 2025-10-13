@@ -42,9 +42,13 @@ type CloudProvider struct {
 // Initialize creates the Kubernetes and Oxide clients and spawns any additional
 // controllers, if necessary.
 func (c *CloudProvider) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, stop <-chan struct{}) {
-	kubernetesClient := clientBuilder.ClientOrDie(CloudProviderName)
-	c.kubernetesClient = kubernetesClient
+	kubernetesClient, err := clientBuilder.Client(CloudProviderName)
+	if err != nil {
+		klog.Fatalf("failed to initialize kubernetes client: %v", err)
+		return
+	}
 
+	c.kubernetesClient = kubernetesClient
 	klog.InfoS("initialized client", "type", "kubernetes")
 
 	oxideClient, err := oxide.NewClient(nil)
@@ -52,8 +56,8 @@ func (c *CloudProvider) Initialize(clientBuilder cloudprovider.ControllerClientB
 		klog.Fatalf("failed to create oxide client: %v", err)
 		return
 	}
-	c.oxideClient = oxideClient
 
+	c.oxideClient = oxideClient
 	klog.InfoS("initialized client", "type", "oxide")
 }
 
