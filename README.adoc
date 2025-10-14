@@ -1,4 +1,26 @@
 = Oxide Cloud Controller Manager
 
-The Oxide Cloud Controller Manager implements the
+The Oxide Cloud Controller Manager is a Kubernetes control plane component
+that contains Oxide specific controllers. This allows Kubernetes clusters
+running on Oxide to integrate with Oxide via the
+https://kubernetes.io/docs/concepts/architecture/cloud-controller/[Cloud Controller Manager]
+architecture.
+
+*This project is still a work in progress!*
+
+A cloud controller manager is free to run any cloud-specific
+controllers it needs. However, generally, a cloud controller
+manager runs the following controllers by implementing the
 https://pkg.go.dev/k8s.io/cloud-provider#Interface[`cloudprovider.Interface`].
+
+* *Node Controller* - Responsible for updating `Node` resources as nodes are added
+or removed from the Kubernetes cluster.
+* *Route Controller* - Responsible for configuring routes in the cloud provider so
+that pods running on different nodes can communicate with one another.
+* *Service Controller* - Responsible for configuring cloud provider infrastructure
+such as load balancers and IP addresses when a `Service` of type `LoadBalancer`
+is created.
+
+The Oxide Cloud Controller Manager only implements the following controllers.
+
+* Node Controller (via https://pkg.go.dev/k8s.io/cloud-provider#InstancesV2[`cloudprovider.InstancesV2`])
