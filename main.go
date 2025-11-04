@@ -16,7 +16,7 @@ import (
 	_ "k8s.io/component-base/metrics/prometheus/version"
 	"k8s.io/klog/v2"
 
-	_ "github.com/oxidecomputer/oxide-cloud-controller-manager/pkg/cloudprovider/oxide"
+	_ "github.com/oxidecomputer/oxide-cloud-controller-manager/internal/provider"
 )
 
 func main() {

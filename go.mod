@@ -1,6 +1,6 @@
 module github.com/oxidecomputer/oxide-cloud-controller-manager
 
-go 1.25.0
+go 1.25.3
 
 require (
 	github.com/oxidecomputer/oxide.go v0.6.0
