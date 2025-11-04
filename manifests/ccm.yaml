@@ -1,4 +1,15 @@
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oxide-cloud-controller-manager
+  namespace: kube-system
+type: Opaque
+stringData:
+  oxide-host: ""
+  oxide-token: ""
+  oxide-project: ""
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,7 +51,7 @@ spec:
         env:
           - name: OXIDE_HOST
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 name: oxide-cloud-controller-manager
                 key: oxide-host
           - name: OXIDE_TOKEN
@@ -50,7 +61,7 @@ spec:
                 key: oxide-token
           - name: OXIDE_PROJECT
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 name: oxide-cloud-controller-manager
                 key: oxide-project
 ---
