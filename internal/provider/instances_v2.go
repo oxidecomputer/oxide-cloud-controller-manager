@@ -25,7 +25,10 @@ type InstancesV2 struct {
 // InstanceExists checks whether the provided Kubernetes node exists as instance
 // in Oxide.
 func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
-	instanceID := strings.TrimPrefix(node.Spec.ProviderID, "oxide://")
+	instanceID, err := InstanceIDFromProviderID(node.Spec.ProviderID)
+	if err != nil {
+		return false, fmt.Errorf("failed retrieving instance id from provider id: %w", err)
+	}
 
 	if _, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
 		Instance: oxide.NameOrId(instanceID),
@@ -50,7 +53,10 @@ func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 	)
 
 	if node.Spec.ProviderID != "" {
-		instanceID = strings.TrimPrefix(node.Spec.ProviderID, "oxide://")
+		instanceID, err = InstanceIDFromProviderID(node.Spec.ProviderID)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieving instance id from provider id: %w", err)
+		}
 
 		instance, err = i.client.InstanceView(ctx, oxide.InstanceViewParams{
 			Instance: oxide.NameOrId(instanceID),
@@ -109,7 +115,7 @@ func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 	}
 
 	return &cloudprovider.InstanceMetadata{
-		ProviderID:    fmt.Sprintf("oxide://%s", instanceID),
+		ProviderID:    NewProviderID(instanceID),
 		InstanceType:  fmt.Sprintf("%v-%v", instance.Ncpus, (instance.Memory / (1024 * 1024 * 1024))),
 		NodeAddresses: nodeAddresses,
 	}, nil
@@ -117,7 +123,10 @@ func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 
 // InstanceShutdown checks whether the provided node is shut down in Oxide.
 func (i *InstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
-	instanceID := strings.TrimPrefix(node.Spec.ProviderID, "oxide://")
+	instanceID, err := InstanceIDFromProviderID(node.Spec.ProviderID)
+	if err != nil {
+		return false, fmt.Errorf("failed retrieving instance id from provider id: %w", err)
+	}
 
 	instance, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
 		Instance: oxide.NameOrId(instanceID),
