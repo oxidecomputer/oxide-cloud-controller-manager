@@ -24,10 +24,10 @@ type InstancesV2 struct {
 
 // InstanceExists checks whether the provided Kubernetes node exists as instance
 // in Oxide.
-func (c *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
+func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
 	instanceID := strings.TrimPrefix(node.Spec.ProviderID, "oxide://")
 
-	if _, err := c.client.InstanceView(ctx, oxide.InstanceViewParams{
+	if _, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
 		Instance: oxide.NameOrId(instanceID),
 	}); err != nil {
 		if strings.Contains(err.Error(), "NotFound") {
@@ -42,7 +42,7 @@ func (c *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, 
 
 // InstanceMetadata populates the metadata for the provided node, notably
 // setting its provider ID.
-func (c *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*cloudprovider.InstanceMetadata, error) {
+func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*cloudprovider.InstanceMetadata, error) {
 	var (
 		err        error
 		instance   *oxide.Instance
@@ -52,15 +52,15 @@ func (c *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 	if node.Spec.ProviderID != "" {
 		instanceID = strings.TrimPrefix(node.Spec.ProviderID, "oxide://")
 
-		instance, err = c.client.InstanceView(ctx, oxide.InstanceViewParams{
+		instance, err = i.client.InstanceView(ctx, oxide.InstanceViewParams{
 			Instance: oxide.NameOrId(instanceID),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed viewing oxide instance by id: %v", err)
 		}
 	} else {
-		instance, err = c.client.InstanceView(ctx, oxide.InstanceViewParams{
-			Project:  oxide.NameOrId(c.project),
+		instance, err = i.client.InstanceView(ctx, oxide.InstanceViewParams{
+			Project:  oxide.NameOrId(i.project),
 			Instance: oxide.NameOrId(node.GetName()),
 		})
 		if err != nil {
@@ -70,14 +70,14 @@ func (c *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 		instanceID = instance.Id
 	}
 
-	nics, err := c.client.InstanceNetworkInterfaceList(ctx, oxide.InstanceNetworkInterfaceListParams{
+	nics, err := i.client.InstanceNetworkInterfaceList(ctx, oxide.InstanceNetworkInterfaceListParams{
 		Instance: oxide.NameOrId(instanceID),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed listing instance network interfaces: %v", err)
 	}
 
-	externalIPs, err := c.client.InstanceExternalIpList(ctx, oxide.InstanceExternalIpListParams{
+	externalIPs, err := i.client.InstanceExternalIpList(ctx, oxide.InstanceExternalIpListParams{
 		Instance: oxide.NameOrId(instanceID),
 	})
 	if err != nil {
@@ -116,10 +116,10 @@ func (c *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 }
 
 // InstanceShutdown checks whether the provided node is shut down in Oxide.
-func (c *InstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
+func (i *InstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
 	instanceID := strings.TrimPrefix(node.Spec.ProviderID, "oxide://")
 
-	instance, err := c.client.InstanceView(ctx, oxide.InstanceViewParams{
+	instance, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
 		Instance: oxide.NameOrId(instanceID),
 	})
 	if err != nil {
