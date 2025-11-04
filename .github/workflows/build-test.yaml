@@ -6,33 +6,15 @@ on:
 name: Build & Test
 
 jobs:
-
-  build:
-    name: Build
+  build-test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
 
-      - name: Install Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: "go.mod"
-
-      - name: Run Build
-        run: go build .
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v5
-
-      - name: Install Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: "go.mod"
+      - name: Build Container Image
+        run: make image-build
 
       - name: Run Tests
-        run: go test -v ./...
+        run: make test
