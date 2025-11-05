@@ -1,0 +1,45 @@
+VERSION ?= 0.1.0-$(GIT_COMMIT_SHORT)
+GO_CONTAINER_IMAGE ?= docker.io/golang:1.25.3
+
+CONTAINER_RUNTIME ?= $(shell command -v podman 2>/dev/null || command -v docker 2>/dev/null)
+ifeq ($(CONTAINER_RUNTIME),)
+$(error No container runtime found. Please install podman or docker)
+endif
+
+GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+# Container image configuration.
+IMAGE_REGISTRY ?= ghcr.io/oxidecomputer
+IMAGE_NAME ?= oxide-cloud-controller-manager
+IMAGE_TAG ?= $(VERSION)
+IMAGE_FULL ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME):$(IMAGE_TAG)
+
+.PHONY: test
+test:
+	@echo "Running tests in container..."
+	$(CONTAINER_RUNTIME) build \
+		--build-arg GO_CONTAINER_IMAGE=$(GO_CONTAINER_IMAGE) \
+		--build-arg VERSION=$(VERSION) \
+		--target builder \
+		-t $(IMAGE_NAME)-builder:$(IMAGE_TAG) \
+		.
+	$(CONTAINER_RUNTIME) run --rm $(IMAGE_NAME)-builder:$(IMAGE_TAG) go test -v ./...
+
+.PHONY: image-build
+image-build:
+	@echo "Building container image: $(IMAGE_FULL)"
+	$(CONTAINER_RUNTIME) build \
+		--build-arg GO_CONTAINER_IMAGE=$(GO_CONTAINER_IMAGE) \
+		--build-arg VERSION=$(VERSION) \
+		-t $(IMAGE_FULL) \
+		.
+
+.PHONY: image-push
+image-push:
+	@if [ -z "$(IMAGE_REGISTRY)" ]; then \
+		echo "Error: IMAGE_REGISTRY must be set to push images"; \
+		echo "Example: make image-push IMAGE_REGISTRY=ghcr.io/oxidecomputer"; \
+		exit 1; \
+	fi
+	@echo "Pushing container image: $(IMAGE_FULL)"
+	$(CONTAINER_RUNTIME) push $(IMAGE_FULL)
