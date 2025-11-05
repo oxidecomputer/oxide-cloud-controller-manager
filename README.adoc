@@ -1,26 +1,104 @@
 = Oxide Cloud Controller Manager
 
-The Oxide Cloud Controller Manager is a Kubernetes control plane component
-that contains Oxide specific controllers. This allows Kubernetes clusters
-running on Oxide to integrate with Oxide via the
+The Oxide Cloud Controller Manager is a Kubernetes control plane component that
+embeds Oxide specific control logic, allowing Kubernetes clusters running on
+Oxide to integrate with the Oxide API via the
 https://kubernetes.io/docs/concepts/architecture/cloud-controller/[Cloud Controller Manager]
 architecture.
 
-*This project is still a work in progress!*
-
-A cloud controller manager is free to run any cloud-specific
-controllers it needs. However, generally, a cloud controller
-manager runs the following controllers by implementing the
+A cloud controller manager is free to embed any cloud-specific control logic
+it needs. However, cloud controller manager implementations generally embed the
+following control logic by implementing the
 https://pkg.go.dev/k8s.io/cloud-provider#Interface[`cloudprovider.Interface`].
 
-* *Node Controller* - Responsible for updating `Node` resources as nodes are added
-or removed from the Kubernetes cluster.
-* *Route Controller* - Responsible for configuring routes in the cloud provider so
-that pods running on different nodes can communicate with one another.
-* *Service Controller* - Responsible for configuring cloud provider infrastructure
-such as load balancers and IP addresses when a `Service` of type `LoadBalancer`
-is created.
+* *Node Controller*: Manages `Node` resources based on the information returned
+from the cloud provider API (e.g., labels, addresses, node health).
+* *Route Controller*: Configures routes in the cloud provider so pods running
+on different Kubernetes nodes can communicate with one another.
+* *Service Controller*: Ensures cloud provider infrastructure (e.g., load
+balancer, IP addresses) exists for a `Service` of type `LoadBalancer`.
 
-The Oxide Cloud Controller Manager only implements the following controllers.
+The Oxide Cloud Controller Manager implements the following Oxide specific
+control logic.
 
-* Node Controller (via https://pkg.go.dev/k8s.io/cloud-provider#InstancesV2[`cloudprovider.InstancesV2`])
+* Node Controller
+
+== Usage
+
+Please note the following before using the Oxide Cloud Controller Manager.
+
+* The cloud controller manager can only manage a single Kubernetes cluster with
+all its nodes running in the same Oxide silo and project. This may be expanded
+in the future.
+* The `kubelet`, `kube-apiserver`, and `kube-controller-manager` must be run
+with `--cloud-provider=external` to configure the Kubernetes cluster to use
+a cloud controller manager. This process differs depending on your Kubernetes
+distribution of choice.
+* Nodes joining a Kubernetes cluster configured to use a cloud controller
+manager will have a taint `node.cloudprovider.kubernetes.io/uninitialized` with
+effect `NoSchedule`. This taint will be removed by the node controller within
+the cloud controller manager.
+
+With the above noted, let's run the Oxide Cloud Controller Manager in your
+Kubernetes cluster.
+
+Create the following `Secret` to hold the Oxide credentials.
+
+[source,yaml]
+----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oxide-cloud-controller-manager
+  namespace: kube-system
+type: Opaque
+stringData:
+  oxide-host: "https://oxide.sys.example.com"
+  oxide-token: "oxide-token-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  oxide-project: "example"
+----
+
+Apply the
+link:manifests/oxide-cloud-controller-manager.yaml[oxide-cloud-controller-manager.yaml] Kubernetes manifest.
+
+[source,shell]
+----
+kubectl apply -f oxide-cloud-controller-manager.yaml
+----
+
+== Development
+
+The `Makefile` is the primary method of interfacing with this project. Refer to
+its targets for more information. The build artifact is a container image to be
+run either inside or outside the Kubernetes cluster it’s meant to manage.
+
+=== Running Locally
+
+Build the container image.
+
+[source,shell]
+----
+make build
+----
+
+Determine if you want to run the cloud controller manager inside or outside the
+Kubernetes cluster it's meant to manage.
+
+To run the cloud controller manager inside the Kubernetes cluster, refer to
+link:_usage[Usage].
+
+To run the cloud controller manager outside the Kubernetes cluster, run the
+container image with a kubeconfig for the cluster you want to manage.
+
+[source,shell]
+----
+podman run \
+	--env OXIDE_HOST \
+	--env OXIDE_TOKEN \
+	--env OXIDE_PROJECT \
+	--volume ./kubeconfig.yaml:/tmp/kubeconfig.yaml:ro \
+	ghcr.io/oxidecomputer/oxide-cloud-controller-manager:TAG \
+	--cloud-provider oxide \
+	--kubeconfig /tmp/kubeconfig.yaml
+----
