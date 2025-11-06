@@ -109,18 +109,28 @@ The release process is manual and runs from a developer's workstation for now.
 
 . Check out the revision to be released. Ensure the working copy is clean.
 
-. Build the container image using the correct image registry and tag.
+. Build the container image.
 +
 [source,shell]
 ----
-IMAGE_REGISTRY=ghcr.io/oxidecomputer IMAGE_TAG=0.1.0 make build
+RELEASE=true make build
 ----
 
-. Push the container image using to correct image registry.
+. Push the container image.
 +
 [source,shell]
 ----
-IMAGE_REGISTRY=ghcr.io/oxidecomputer IMAGE_TAG=0.1.0 make push
+RELEASE=true make push
 ----
 
-. Bump the `VERSION` within the `Makefile` to the next version.
+. Create a GitHub release.
+
+.. Create and push a Git tag with the v-prefixed `VERSION` (e.g., v0.1.0).
+
+.. Create the GitHub release for the newly pushed tag. Automatically generate the release notes.
+
+. Open a pull request with the following changes.
+
+.. Update the `VERSION` within the `Makefile` to the next version.
+
+.. Update the image tag within `manifests/oxide-cloud-controller-manager.yaml`.
