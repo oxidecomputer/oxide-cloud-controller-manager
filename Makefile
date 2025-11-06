@@ -9,7 +9,7 @@ endif
 GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Container image configuration.
-IMAGE_REGISTRY ?= ghcr.io/oxidecomputer
+IMAGE_REGISTRY ?= localhost
 IMAGE_NAME ?= oxide-cloud-controller-manager
 IMAGE_TAG ?= $(patsubst v%,%,$(VERSION))-$(GIT_COMMIT_SHORT)
 IMAGE_FULL ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME):$(IMAGE_TAG)
@@ -18,10 +18,11 @@ IMAGE_FULL ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME):$(IMAGE_TA
 test:
 	@echo "Running tests in container..."
 	$(CONTAINER_RUNTIME) build \
+		--file Containerfile \
 		--build-arg GO_CONTAINER_IMAGE=$(GO_CONTAINER_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
 		--target builder \
-		-t $(IMAGE_NAME)-builder:$(IMAGE_TAG) \
+		--tag $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME)-builder:$(IMAGE_TAG) \
 		.
 	$(CONTAINER_RUNTIME) run --rm $(IMAGE_NAME)-builder:$(IMAGE_TAG) go test -v ./...
 
@@ -29,9 +30,12 @@ test:
 build:
 	@echo "Building container image: $(IMAGE_FULL)"
 	$(CONTAINER_RUNTIME) build \
+		--file Containerfile \
 		--build-arg GO_CONTAINER_IMAGE=$(GO_CONTAINER_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
-		-t $(IMAGE_FULL) \
+		--annotation org.opencontainers.image.description='Oxide Cloud Controller Manager' \
+		--annotation org.opencontainers.image.source=https://github.com/oxidecomputer/oxide-cloud-controller-manager \
+		--tag $(IMAGE_FULL) \
 		.
 
 .PHONY: push

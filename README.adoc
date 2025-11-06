@@ -102,3 +102,25 @@ podman run \
 	--cloud-provider oxide \
 	--kubeconfig /tmp/kubeconfig.yaml
 ----
+
+== Release Process
+
+The release process is manual and runs from a developer's workstation for now.
+
+. Check out the revision to be released. Ensure the working copy is clean.
+
+. Build the container image using the correct image registry and tag.
++
+[source,shell]
+----
+IMAGE_REGISTRY=ghcr.io/oxidecomputer IMAGE_TAG=0.1.0 make build
+----
+
+. Push the container image using to correct image registry.
++
+[source,shell]
+----
+IMAGE_REGISTRY=ghcr.io/oxidecomputer IMAGE_TAG=0.1.0 make push
+----
+
+. Bump the `VERSION` within the `Makefile` to the next version.
