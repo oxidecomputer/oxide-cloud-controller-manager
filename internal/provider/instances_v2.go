@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/oxidecomputer/oxide.go/oxide"
 	v1 "k8s.io/api/core/v1"
@@ -15,6 +16,9 @@ import (
 )
 
 var _ cloudprovider.InstancesV2 = (*InstancesV2)(nil)
+
+// gibibyte is the number of bytes in a gibibyte.
+const gibibyte = 1024 * 1024 * 1024
 
 // InstancesV2 implements [cloudprovider.InstancesV2] to provide Oxide specific
 // instance functionality.
@@ -28,6 +32,9 @@ type InstancesV2 struct {
 // InstanceExists checks whether the provided Kubernetes node exists as instance
 // in Oxide.
 func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	instanceID, err := InstanceIDFromProviderID(node.Spec.ProviderID)
 	if err != nil {
 		return false, fmt.Errorf("failed retrieving instance id from provider id: %w", err)
@@ -49,34 +56,21 @@ func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, 
 // InstanceMetadata populates the metadata for the provided node, notably
 // setting its provider ID.
 func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*cloudprovider.InstanceMetadata, error) {
-	var (
-		err        error
-		instance   *oxide.Instance
-		instanceID string
-	)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
-	if node.Spec.ProviderID != "" {
-		instanceID, err = InstanceIDFromProviderID(node.Spec.ProviderID)
-		if err != nil {
-			return nil, fmt.Errorf("failed retrieving instance id from provider id: %w", err)
-		}
+	// Get the instance ID, either from the provider ID or by looking up by name.
+	instanceID, err := i.getInstanceID(ctx, node)
+	if err != nil {
+		return nil, err
+	}
 
-		instance, err = i.client.InstanceView(ctx, oxide.InstanceViewParams{
-			Instance: oxide.NameOrId(instanceID),
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed viewing oxide instance by id: %v", err)
-		}
-	} else {
-		instance, err = i.client.InstanceView(ctx, oxide.InstanceViewParams{
-			Project:  oxide.NameOrId(i.project),
-			Instance: oxide.NameOrId(node.GetName()),
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed viewing oxide instance by name: %v", err)
-		}
-
-		instanceID = instance.Id
+	// Retrieve the instance details.
+	instance, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
+		Instance: oxide.NameOrId(instanceID),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed viewing oxide instance: %v", err)
 	}
 
 	nics, err := i.client.InstanceNetworkInterfaceList(ctx, oxide.InstanceNetworkInterfaceListParams{
@@ -119,13 +113,35 @@ func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 
 	return &cloudprovider.InstanceMetadata{
 		ProviderID:    NewProviderID(instanceID),
-		InstanceType:  fmt.Sprintf("%v-%v", instance.Ncpus, (instance.Memory / (1024 * 1024 * 1024))),
+		InstanceType:  fmt.Sprintf("%d-%d", instance.Ncpus, instance.Memory/gibibyte),
 		NodeAddresses: nodeAddresses,
 	}, nil
 }
 
+// getInstanceID retrieves the instance ID either from the node's provider ID
+// or by looking up the instance by name.
+func (i *InstancesV2) getInstanceID(ctx context.Context, node *v1.Node) (string, error) {
+	if node.Spec.ProviderID != "" {
+		return InstanceIDFromProviderID(node.Spec.ProviderID)
+	}
+
+	// If no provider ID is set, look up the instance by name.
+	instance, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
+		Project:  oxide.NameOrId(i.project),
+		Instance: oxide.NameOrId(node.GetName()),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed viewing oxide instance by name: %v", err)
+	}
+
+	return instance.Id, nil
+}
+
 // InstanceShutdown checks whether the provided node is shut down in Oxide.
 func (i *InstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	instanceID, err := InstanceIDFromProviderID(node.Spec.ProviderID)
 	if err != nil {
 		return false, fmt.Errorf("failed retrieving instance id from provider id: %w", err)
