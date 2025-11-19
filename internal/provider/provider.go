@@ -48,20 +48,21 @@ func (o *Oxide) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, 
 	kubernetesClient, err := clientBuilder.Client(Name)
 	if err != nil {
 		klog.Fatalf("failed to create kubernetes client: %v", err)
-		return
 	}
 	o.k8sClient = kubernetesClient
 
 	oxideClient, err := oxide.NewClient(nil)
 	if err != nil {
 		klog.Fatalf("failed to create oxide client: %v", err)
-		return
 	}
 	o.client = oxideClient
 
 	o.project = os.Getenv("OXIDE_PROJECT")
+	if o.project == "" {
+		klog.Fatalf("OXIDE_PROJECT environment variable is required")
+	}
 
-	klog.InfoS("initialized cloud provider", "type", "oxide")
+	klog.InfoS("initialized cloud provider", "type", "oxide", "project", o.project)
 }
 
 // ProviderName returns the name of this cloud provider.
