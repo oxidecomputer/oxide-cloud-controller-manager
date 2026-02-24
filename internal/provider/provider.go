@@ -110,10 +110,12 @@ func (o *Oxide) InstancesV2() (cloudprovider.InstancesV2, bool) {
 	}, true
 }
 
-// LoadBalancer is currently unimplemented. This may be implemented in the
-// future.
 func (o *Oxide) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
-	return nil, false
+	return &LoadBalancer{
+		client:    o.client,
+		project:   o.project,
+		k8sClient: o.k8sClient,
+	}, true
 }
 
 // Routes is purposefully unimplemented. It is expected that the Kubernetes
