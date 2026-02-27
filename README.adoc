@@ -125,7 +125,7 @@ RELEASE=true make push
 
 . Create a GitHub release.
 
-.. Create and push a Git tag with the v-prefixed `VERSION` (e.g., v0.1.0).
+.. Create and push a Git tag with the v-prefixed `VERSION` (e.g., vX.Y.Z).
 
 .. Create the GitHub release for the newly pushed tag. Automatically generate the release notes.
 
