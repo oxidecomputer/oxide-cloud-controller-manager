@@ -27,7 +27,7 @@ spec:
         - key: "node-role.kubernetes.io/control-plane"
           effect: NoSchedule
       containers:
-      - image: ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.2.0
+      - image: ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.3.0
         name: oxide-cloud-controller-manager
         command:
           - "/usr/bin/oxide-cloud-controller-manager"
