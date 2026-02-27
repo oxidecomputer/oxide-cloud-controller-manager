@@ -94,21 +94,50 @@ func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 	})
 
 	for _, nic := range nics.Items {
-		nodeAddresses = append(nodeAddresses, v1.NodeAddress{
-			Type:    v1.NodeInternalIP,
-			Address: nic.Ip,
-		})
+		if v4, ok := nic.IpStack.AsV4(); ok {
+			nodeAddresses = append(nodeAddresses, v1.NodeAddress{
+				Type:    v1.NodeInternalIP,
+				Address: v4.Value.Ip,
+			})
+		}
+
+		if v6, ok := nic.IpStack.AsV6(); ok {
+			nodeAddresses = append(nodeAddresses, v1.NodeAddress{
+				Type:    v1.NodeInternalIP,
+				Address: v6.Value.Ip,
+			})
+		}
+
+		if dualStack, ok := nic.IpStack.AsDualStack(); ok {
+			nodeAddresses = append(nodeAddresses, v1.NodeAddress{
+				Type:    v1.NodeInternalIP,
+				Address: dualStack.Value.V4.Ip,
+			})
+			nodeAddresses = append(nodeAddresses, v1.NodeAddress{
+				Type:    v1.NodeInternalIP,
+				Address: dualStack.Value.V6.Ip,
+			})
+		}
 	}
 
 	for _, externalIP := range externalIPs.Items {
-		if externalIP.Kind == "snat" {
+		if _, ok := externalIP.AsSnat(); ok {
 			continue
 		}
 
-		nodeAddresses = append(nodeAddresses, v1.NodeAddress{
-			Type:    v1.NodeExternalIP,
-			Address: externalIP.Ip,
-		})
+		if ephemeral, ok := externalIP.AsEphemeral(); ok {
+			nodeAddresses = append(nodeAddresses, v1.NodeAddress{
+				Type:    v1.NodeExternalIP,
+				Address: ephemeral.Ip,
+			})
+		}
+
+		if floating, ok := externalIP.AsFloating(); ok {
+			nodeAddresses = append(nodeAddresses, v1.NodeAddress{
+				Type:    v1.NodeExternalIP,
+				Address: floating.Ip,
+			})
+		}
 	}
 
 	return &cloudprovider.InstanceMetadata{

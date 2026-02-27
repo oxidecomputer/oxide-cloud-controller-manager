@@ -51,7 +51,7 @@ func (o *Oxide) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, 
 	}
 	o.k8sClient = kubernetesClient
 
-	oxideClient, err := oxide.NewClient(nil)
+	oxideClient, err := oxide.NewClient()
 	if err != nil {
 		klog.Fatalf("failed to create oxide client: %v", err)
 	}
