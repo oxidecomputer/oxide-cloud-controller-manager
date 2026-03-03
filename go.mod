@@ -5,11 +5,11 @@ go 1.25.3
 require (
 	github.com/google/uuid v1.6.0
 	github.com/oxidecomputer/oxide.go v0.8.0
-	k8s.io/api v0.35.1
-	k8s.io/apimachinery v0.35.1
-	k8s.io/client-go v0.35.1
-	k8s.io/cloud-provider v0.35.1
-	k8s.io/component-base v0.35.1
+	k8s.io/api v0.35.2
+	k8s.io/apimachinery v0.35.2
+	k8s.io/client-go v0.35.2
+	k8s.io/cloud-provider v0.35.2
+	k8s.io/component-base v0.35.2
 	k8s.io/klog/v2 v2.130.1
 )
 
@@ -104,10 +104,10 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	k8s.io/apiserver v0.35.1 // indirect
-	k8s.io/component-helpers v0.35.1 // indirect
-	k8s.io/controller-manager v0.35.1 // indirect
-	k8s.io/kms v0.35.1 // indirect
+	k8s.io/apiserver v0.35.2 // indirect
+	k8s.io/component-helpers v0.35.2 // indirect
+	k8s.io/controller-manager v0.35.2 // indirect
+	k8s.io/kms v0.35.2 // indirect
 	k8s.io/kube-openapi v0.0.0-20260127142750-a19766b6e2d4 // indirect
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 // indirect
