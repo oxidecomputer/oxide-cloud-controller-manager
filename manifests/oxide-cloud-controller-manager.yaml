@@ -1,70 +1,30 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: oxide-cloud-controller-manager
-  namespace: kube-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: oxide-cloud-controller-manager
-  template:
-    metadata:
-      labels:
-        app: oxide-cloud-controller-manager
-    spec:
-      dnsPolicy: Default
-      hostNetwork: true
-      serviceAccountName: oxide-cloud-controller-manager
-      priorityClassName: system-cluster-critical
-      tolerations:
-        - key: "node.cloudprovider.kubernetes.io/uninitialized"
-          value: "true"
-          effect: "NoSchedule"
-        - key: "CriticalAddonsOnly"
-          operator: "Exists"
-        - key: "node-role.kubernetes.io/control-plane"
-          effect: NoSchedule
-      containers:
-      - image: ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.3.0
-        name: oxide-cloud-controller-manager
-        command:
-          - "/usr/bin/oxide-cloud-controller-manager"
-          - "--cloud-provider=oxide"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 50Mi
-        env:
-          - name: OXIDE_HOST
-            valueFrom:
-              secretKeyRef:
-                name: oxide-cloud-controller-manager
-                key: oxide-host
-          - name: OXIDE_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: oxide-cloud-controller-manager
-                key: oxide-token
-          - name: OXIDE_PROJECT
-            valueFrom:
-              secretKeyRef:
-                name: oxide-cloud-controller-manager
-                key: oxide-project
----
+# Source: oxide-cloud-controller-manager/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: oxide-cloud-controller-manager
   namespace: kube-system
+  labels:
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    app.kubernetes.io/name: oxide-cloud-controller-manager
+    app.kubernetes.io/instance: oxide-cloud-controller-manager
+    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/managed-by: Helm
 ---
+# Source: oxide-cloud-controller-manager/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: system:oxide-cloud-controller-manager
+  labels:
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    app.kubernetes.io/name: oxide-cloud-controller-manager
+    app.kubernetes.io/instance: oxide-cloud-controller-manager
+    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/managed-by: Helm
   annotations:
     rbac.authorization.kubernetes.io/autoupdate: "true"
-  name: system:oxide-cloud-controller-manager
 rules:
 - apiGroups:
   - coordination.k8s.io
@@ -149,10 +109,17 @@ rules:
   - list
   - watch
 ---
-kind: ClusterRoleBinding
+# Source: oxide-cloud-controller-manager/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
   name: system:oxide-cloud-controller-manager
+  labels:
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    app.kubernetes.io/name: oxide-cloud-controller-manager
+    app.kubernetes.io/instance: oxide-cloud-controller-manager
+    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/managed-by: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -161,3 +128,67 @@ subjects:
 - kind: ServiceAccount
   name: oxide-cloud-controller-manager
   namespace: kube-system
+---
+# Source: oxide-cloud-controller-manager/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oxide-cloud-controller-manager
+  namespace: kube-system
+  labels:
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    app.kubernetes.io/name: oxide-cloud-controller-manager
+    app.kubernetes.io/instance: oxide-cloud-controller-manager
+    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oxide-cloud-controller-manager
+      app.kubernetes.io/instance: oxide-cloud-controller-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: oxide-cloud-controller-manager
+        app.kubernetes.io/instance: oxide-cloud-controller-manager
+    spec:
+      dnsPolicy: Default
+      hostNetwork: true
+      serviceAccountName: oxide-cloud-controller-manager
+      priorityClassName: system-cluster-critical
+      tolerations:
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          value: "true"
+          effect: "NoSchedule"
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
+        - key: "node-role.kubernetes.io/control-plane"
+          effect: NoSchedule
+      containers:
+      - name: oxide-cloud-controller-manager
+        image: "ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.3.0"
+        imagePullPolicy: IfNotPresent
+        command:
+          - "/usr/bin/oxide-cloud-controller-manager"
+          - "--cloud-provider=oxide"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        env:
+          - name: OXIDE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: oxide-cloud-controller-manager
+                key: oxide-host
+          - name: OXIDE_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: oxide-cloud-controller-manager
+                key: oxide-token
+          - name: OXIDE_PROJECT
+            valueFrom:
+              secretKeyRef:
+                name: oxide-cloud-controller-manager
+                key: oxide-project

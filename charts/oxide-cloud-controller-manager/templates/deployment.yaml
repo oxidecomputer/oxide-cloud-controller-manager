@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oxide-ccm.fullName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "oxide-ccm.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- include "oxide-ccm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "oxide-ccm.selectorLabels" . | nindent 8 }}
+    spec:
+      dnsPolicy: Default
+      hostNetwork: true
+      serviceAccountName: {{ include "oxide-ccm.fullName" . }}
+      priorityClassName: system-cluster-critical
+      tolerations:
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          value: "true"
+          effect: "NoSchedule"
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
+        - key: "node-role.kubernetes.io/control-plane"
+          effect: NoSchedule
+      containers:
+      - name: {{ include "oxide-ccm.name" . }}
+        image: "{{ .Values.deployment.image.name }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.deployment.imagePullPolicy }}
+        command:
+          - "/usr/bin/oxide-cloud-controller-manager"
+          - "--cloud-provider=oxide"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        env:
+          - name: OXIDE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "oxide-ccm.fullName" . }}
+                key: oxide-host
+          - name: OXIDE_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "oxide-ccm.fullName" . }}
+                key: oxide-token
+          - name: OXIDE_PROJECT
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "oxide-ccm.fullName" . }}
+                key: oxide-project
