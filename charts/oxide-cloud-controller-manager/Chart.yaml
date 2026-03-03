@@ -1,0 +1,18 @@
+---
+apiVersion: v2
+name: oxide-cloud-controller-manager
+description: "Oxide Kubernetes Cloud Controller Manager."
+type: application
+version: "0.3.0"
+appVersion: "0.3.0"
+keywords:
+  - oxide
+  - cloud-controller-manager
+home: "https://github.com/oxidecomputer/oxide-cloud-controller-manager"
+sources:
+  - "https://github.com/oxidecomputer/oxide-cloud-controller-manager"
+maintainers:
+  - name: Oxide Computer Company
+    email: support@oxide.computer
+    url: "https://oxide.computer"
+icon: "https://oxide.computer/favicon.svg"

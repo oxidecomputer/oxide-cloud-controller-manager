@@ -109,6 +109,20 @@ The release process is manual and runs from a developer's workstation for now.
 
 . Check out the revision to be released. Ensure the working copy is clean.
 
+. Build the Helm chart.
++
+[source,shell]
+----
+make helm-package
+----
+
+. Push the Helm chart.
++
+[source,shell]
+----
+make helm-push
+----
+
 . Build the container image.
 +
 [source,shell]
@@ -133,4 +147,4 @@ RELEASE=true make push
 
 .. Update the `VERSION` within the `Makefile` to the next version.
 
-.. Update the image tag within `manifests/oxide-cloud-controller-manager.yaml`.
+.. Run `make manifest` to generate a new `manifests/oxide-cloud-controller-manager.yaml`.

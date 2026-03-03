@@ -17,6 +17,11 @@ IMAGE_NAME ?= oxide-cloud-controller-manager
 IMAGE_TAG ?= $(patsubst v%,%,$(VERSION))$(if $(RELEASE),,-$(GIT_COMMIT_SHORT))
 IMAGE_FULL ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME):$(IMAGE_TAG)
 
+# Helm chart configuration.
+HELM_CHART_DIR ?= charts/oxide-cloud-controller-manager
+HELM_CHART_REGISTRY ?= oci://ghcr.io/oxidecomputer/charts
+HELM ?= go tool -modfile tools/go.mod helm
+
 .PHONY: test
 test:
 	@echo "Running tests in container..."
@@ -45,3 +50,24 @@ build:
 push:
 	@echo "Pushing container image: $(IMAGE_FULL)"
 	$(CONTAINER_RUNTIME) push $(IMAGE_FULL)
+
+.PHONY: helm-set-version
+helm-set-version:
+	@sed -i 's/^version: .*/version: "$(patsubst v%,%,$(VERSION))"/' $(HELM_CHART_DIR)/Chart.yaml
+	@sed -i 's/^appVersion: .*/appVersion: "$(patsubst v%,%,$(VERSION))"/' $(HELM_CHART_DIR)/Chart.yaml
+
+.PHONY: manifest
+manifest: helm-set-version
+	@echo "Generating Kubernetes manifest: manifests/oxide-cloud-controller-manager.yaml"
+	$(HELM) template oxide-cloud-controller-manager $(HELM_CHART_DIR) \
+		--namespace kube-system \
+		> manifests/oxide-cloud-controller-manager.yaml
+
+.PHONY: helm-package
+helm-package: helm-set-version
+	$(HELM) package $(HELM_CHART_DIR)
+
+.PHONY: helm-push
+helm-push: helm-package
+	$(HELM) push $(IMAGE_NAME)-$(patsubst v%,%,$(VERSION)).tgz \
+		$(HELM_CHART_REGISTRY)

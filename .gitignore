@@ -1,0 +1,2 @@
+# Ignore Helm packages.
+*.tgz

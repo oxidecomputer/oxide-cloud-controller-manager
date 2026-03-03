@@ -1,0 +1,8 @@
+deployment:
+  replicas: 1
+  image:
+    # Fully-qualified image name, without the `:TAG` portion.
+    name: ghcr.io/oxidecomputer/oxide-cloud-controller-manager
+    # Image tag. Uses Chart.yaml's `appVersion` when empty.
+    tag: ""
+  imagePullPolicy: IfNotPresent
