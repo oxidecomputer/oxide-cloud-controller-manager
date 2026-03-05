@@ -1,6 +1,6 @@
 name: Release
 description: Request a new release to be published.
-title: "Release: Omni Infrastructure Provider"
+title: "Release: Kubernetes Cloud Controller Manager"
 projects: ["oxidecomputer/116"]
 body:
   - type: markdown
