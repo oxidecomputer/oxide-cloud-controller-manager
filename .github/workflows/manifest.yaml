@@ -1,0 +1,29 @@
+---
+on:
+  pull_request: {}
+
+name: Manifest
+
+jobs:
+  manifest:
+    name: Check Generated Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Generate Manifest
+        run: make manifest
+
+      - name: Check for Changes
+        run: |
+          if ! git diff --quiet --exit-code manifests/; then
+            echo "::error::Generated manifest is out of date. Run 'make manifest' and commit the result."
+            git diff -- manifests/
+            exit 1
+          fi
