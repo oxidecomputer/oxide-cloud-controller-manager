@@ -42,6 +42,34 @@ the cloud controller manager.
 With the above noted, let's run the Oxide Cloud Controller Manager in your
 Kubernetes cluster.
 
+=== Helm Chart
+
+Create a `Secret` to hold the Oxide credentials. The secret
+name must match the Helm release's full name, which defaults to
+`<RELEASE_NAME>-oxide-cloud-controller-manager`.
+
+[source,shell]
+----
+kubectl create secret generic <RELEASE_NAME>-oxide-cloud-controller-manager \
+  --namespace kube-system \
+  --from-literal=oxide-host=https://oxide.sys.example.com \
+  --from-literal=oxide-token=oxide-token-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \
+  --from-literal=oxide-project=example
+----
+
+Install the Helm chart.
+
+[source,shell]
+----
+helm install <RELEASE_NAME> \
+  oci://ghcr.io/oxidecomputer/charts/oxide-cloud-controller-manager \
+  --version X.Y.Z \
+  --namespace kube-system \
+  --create-namespace
+----
+
+=== Kubernetes Manifest
+
 Create the following `Secret` to hold the Oxide credentials.
 
 [source,yaml]
@@ -60,7 +88,9 @@ stringData:
 ----
 
 Apply the
-link:manifests/oxide-cloud-controller-manager.yaml[oxide-cloud-controller-manager.yaml] Kubernetes manifest.
+link:manifests/oxide-cloud-controller-manager.yaml[oxide-cloud-controller-manager.yaml]
+Kubernetes manifest. This manifest is generated from the Helm chart in
+link:charts/oxide-cloud-controller-manager[charts/oxide-cloud-controller-manager].
 
 [source,shell]
 ----
