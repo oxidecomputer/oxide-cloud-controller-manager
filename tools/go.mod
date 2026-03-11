@@ -1,6 +1,6 @@
 module tools
 
-go 1.25.0
+go 1.25.3
 
 tool helm.sh/helm/v4/cmd/helm
 
