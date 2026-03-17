@@ -20,7 +20,7 @@ IMAGE_FULL ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME):$(IMAGE_TA
 
 # Helm chart configuration.
 HELM_CHART_DIR ?= charts/oxide-cloud-controller-manager
-HELM_CHART_REGISTRY ?= oci://ghcr.io/oxidecomputer/charts
+HELM_CHART_REGISTRY ?= oci://ghcr.io/oxidecomputer/helm-charts
 HELM ?= go tool -modfile tools/go.mod helm
 
 .PHONY: test
