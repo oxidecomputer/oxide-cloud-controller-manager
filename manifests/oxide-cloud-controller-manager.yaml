@@ -6,10 +6,10 @@ metadata:
   name: oxide-cloud-controller-manager
   namespace: kube-system
   labels:
-    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.1
     app.kubernetes.io/name: oxide-cloud-controller-manager
     app.kubernetes.io/instance: oxide-cloud-controller-manager
-    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/version: "0.3.1"
     app.kubernetes.io/managed-by: Helm
 ---
 # Source: oxide-cloud-controller-manager/templates/clusterrole.yaml
@@ -18,10 +18,10 @@ kind: ClusterRole
 metadata:
   name: system:oxide-cloud-controller-manager
   labels:
-    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.1
     app.kubernetes.io/name: oxide-cloud-controller-manager
     app.kubernetes.io/instance: oxide-cloud-controller-manager
-    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/version: "0.3.1"
     app.kubernetes.io/managed-by: Helm
   annotations:
     rbac.authorization.kubernetes.io/autoupdate: "true"
@@ -115,10 +115,10 @@ kind: ClusterRoleBinding
 metadata:
   name: system:oxide-cloud-controller-manager
   labels:
-    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.1
     app.kubernetes.io/name: oxide-cloud-controller-manager
     app.kubernetes.io/instance: oxide-cloud-controller-manager
-    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/version: "0.3.1"
     app.kubernetes.io/managed-by: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -136,10 +136,10 @@ metadata:
   name: oxide-cloud-controller-manager
   namespace: kube-system
   labels:
-    helm.sh/chart: oxide-cloud-controller-manager-0.3.0
+    helm.sh/chart: oxide-cloud-controller-manager-0.3.1
     app.kubernetes.io/name: oxide-cloud-controller-manager
     app.kubernetes.io/instance: oxide-cloud-controller-manager
-    app.kubernetes.io/version: "0.3.0"
+    app.kubernetes.io/version: "0.3.1"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -167,7 +167,7 @@ spec:
           effect: NoSchedule
       containers:
       - name: oxide-cloud-controller-manager
-        image: "ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.3.0"
+        image: "ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.3.1"
         imagePullPolicy: IfNotPresent
         command:
           - "/usr/bin/oxide-cloud-controller-manager"
