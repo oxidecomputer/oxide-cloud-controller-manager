@@ -62,7 +62,7 @@ Install the Helm chart.
 [source,shell]
 ----
 helm install <RELEASE_NAME> \
-  oci://ghcr.io/oxidecomputer/charts/oxide-cloud-controller-manager \
+  oci://ghcr.io/oxidecomputer/helm-charts/oxide-cloud-controller-manager \
   --version X.Y.Z \
   --namespace kube-system \
   --create-namespace
