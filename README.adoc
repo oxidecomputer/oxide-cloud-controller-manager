@@ -22,6 +22,7 @@ The Oxide Cloud Controller Manager implements the following Oxide specific
 control logic.
 
 * Node Controller
+* Service Controller
 
 == Usage
 
