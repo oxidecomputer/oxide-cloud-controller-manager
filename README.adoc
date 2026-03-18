@@ -72,19 +72,13 @@ helm install <RELEASE_NAME> \
 
 Create the following `Secret` to hold the Oxide credentials.
 
-[source,yaml]
+[source,shell]
 ----
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: oxide-cloud-controller-manager
-  namespace: kube-system
-type: Opaque
-stringData:
-  oxide-host: "https://oxide.sys.example.com"
-  oxide-token: "oxide-token-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  oxide-project: "example"
+kubectl create secret generic oxide-cloud-controller-manager \
+  --namespace kube-system \
+  --from-literal=oxide-host=https://oxide.sys.example.com \
+  --from-literal=oxide-token=oxide-token-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \
+  --from-literal=oxide-project=example
 ----
 
 Apply the
