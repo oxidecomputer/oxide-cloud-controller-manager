@@ -1,0 +1,44 @@
+---
+on:
+  pull_request: {}
+
+name: Lint & Format
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Lint
+        run: make lint
+
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Format
+        run: make fmt
+
+      - name: Check for Changes
+        run: |
+          if ! git diff --quiet --exit-code; then
+            echo "::error::Code is not formatted. Run 'make fmt' and commit the result."
+            git diff
+            exit 1
+          fi
