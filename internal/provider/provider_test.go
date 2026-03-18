@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 package provider
 
 import (
@@ -31,11 +32,20 @@ func TestInstanceIDFromProviderID(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				result, err := InstanceIDFromProviderID(tc.providerID)
 				if err != nil {
-					t.Errorf("TestInstanceIDFromProviderID(%s) returned non-nil error %v, want nil error", tc.providerID, err)
+					t.Errorf(
+						"TestInstanceIDFromProviderID(%s) returned non-nil error %v, want nil error",
+						tc.providerID,
+						err,
+					)
 				}
 
 				if result != tc.expected {
-					t.Errorf("TestInstanceIDFromProviderID(%s) returned %s, want %s", tc.providerID, result, tc.expected)
+					t.Errorf(
+						"TestInstanceIDFromProviderID(%s) returned %s, want %s",
+						tc.providerID,
+						result,
+						tc.expected,
+					)
 				}
 			})
 		}
@@ -83,11 +93,19 @@ func TestInstanceIDFromProviderID(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				_, err := InstanceIDFromProviderID(tc.providerID)
 				if err == nil {
-					t.Errorf("TestInstanceIDFromProviderID(%s) returned nil error, want non-nil error", tc.providerID)
+					t.Errorf(
+						"TestInstanceIDFromProviderID(%s) returned nil error, want non-nil error",
+						tc.providerID,
+					)
 				}
 
 				if !strings.Contains(err.Error(), tc.errorMsg) {
-					t.Errorf("TestInstanceIDFromProviderID(%s) returned error %v, want %s", tc.providerID, err.Error(), tc.errorMsg)
+					t.Errorf(
+						"TestInstanceIDFromProviderID(%s) returned error %v, want %s",
+						tc.providerID,
+						err.Error(),
+						tc.errorMsg,
+					)
 				}
 			})
 		}

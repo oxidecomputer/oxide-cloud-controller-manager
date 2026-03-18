@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 package provider
 
 import (
@@ -44,7 +45,10 @@ type Oxide struct {
 
 // Initialize creates the Oxide and Kubernetes clients and spawns any additional
 // controllers, if necessary.
-func (o *Oxide) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, stop <-chan struct{}) {
+func (o *Oxide) Initialize(
+	clientBuilder cloudprovider.ControllerClientBuilder,
+	stop <-chan struct{},
+) {
 	kubernetesClient, err := clientBuilder.Client(Name)
 	if err != nil {
 		klog.Fatalf("failed to create kubernetes client: %v", err)

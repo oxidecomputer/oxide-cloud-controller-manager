@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 package provider
 
 import (
@@ -55,7 +56,10 @@ func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, 
 
 // InstanceMetadata populates the metadata for the provided node, notably
 // setting its provider ID.
-func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*cloudprovider.InstanceMetadata, error) {
+func (i *InstancesV2) InstanceMetadata(
+	ctx context.Context,
+	node *v1.Node,
+) (*cloudprovider.InstanceMetadata, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -73,9 +77,12 @@ func (i *InstancesV2) InstanceMetadata(ctx context.Context, node *v1.Node) (*clo
 		return nil, fmt.Errorf("failed viewing oxide instance: %v", err)
 	}
 
-	nics, err := i.client.InstanceNetworkInterfaceList(ctx, oxide.InstanceNetworkInterfaceListParams{
-		Instance: oxide.NameOrId(instanceID),
-	})
+	nics, err := i.client.InstanceNetworkInterfaceList(
+		ctx,
+		oxide.InstanceNetworkInterfaceListParams{
+			Instance: oxide.NameOrId(instanceID),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed listing instance network interfaces: %v", err)
 	}

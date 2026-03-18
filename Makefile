@@ -72,3 +72,13 @@ helm-package: helm-set-version
 helm-push: helm-package
 	$(HELM) push $(IMAGE_NAME)-$(patsubst v%,%,$(VERSION)).tgz \
 		$(HELM_CHART_REGISTRY)
+
+.PHONY: fmt
+fmt:
+	@ echo "+ Formatting Go code..."
+	@ go tool -modfile tools/go.mod golangci-lint fmt
+
+.PHONY: lint
+lint:
+	@ echo "+ Running Go linters..."
+	@ go tool -modfile tools/go.mod golangci-lint run
