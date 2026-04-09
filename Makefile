@@ -23,6 +23,12 @@ HELM_CHART_DIR ?= charts/oxide-cloud-controller-manager
 HELM_CHART_REGISTRY ?= oci://ghcr.io/oxidecomputer/helm-charts
 HELM ?= go tool -modfile tools/go.mod helm
 
+SED := sed
+OS := $(shell uname)
+ifeq ($(OS), Darwin)
+	SED := gsed
+endif
+
 .PHONY: test
 test:
 	@echo "Running tests in container..."
@@ -33,7 +39,7 @@ test:
 		--target builder \
 		--tag $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME)-builder:$(IMAGE_TAG) \
 		.
-	$(CONTAINER_RUNTIME) run --rm $(IMAGE_NAME)-builder:$(IMAGE_TAG) go test -v ./...
+	$(CONTAINER_RUNTIME) run --rm $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/)$(IMAGE_NAME)-builder:$(IMAGE_TAG) go test -v ./...
 
 .PHONY: build
 build:
@@ -54,8 +60,8 @@ push:
 
 .PHONY: helm-set-version
 helm-set-version:
-	@sed -i 's/^version: .*/version: "$(patsubst v%,%,$(VERSION))"/' $(HELM_CHART_DIR)/Chart.yaml
-	@sed -i 's/^appVersion: .*/appVersion: "$(patsubst v%,%,$(VERSION))"/' $(HELM_CHART_DIR)/Chart.yaml
+	@$(SED) -i 's/^version: .*/version: "$(patsubst v%,%,$(VERSION))"/' $(HELM_CHART_DIR)/Chart.yaml
+	@$(SED) -i 's/^appVersion: .*/appVersion: "$(patsubst v%,%,$(VERSION))"/' $(HELM_CHART_DIR)/Chart.yaml
 
 .PHONY: manifest
 manifest: helm-set-version
