@@ -10,6 +10,8 @@ ifeq ($(CONTAINER_RUNTIME),)
 $(error No container runtime found. Please install podman or docker)
 endif
 
+PLATFORM ?= linux/amd64,linux/arm64
+
 GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Container image configuration.
@@ -55,8 +57,19 @@ build:
 
 .PHONY: push
 push:
+	# Note: use docker rather than $(CONTAINER_RUNTIME), since we want to push
+	# multi-arch images, and docker and podman use different multi-arch flags.
 	@echo "Pushing container image: $(IMAGE_FULL)"
-	$(CONTAINER_RUNTIME) push $(IMAGE_FULL)
+	docker buildx build \
+		--platform $(PLATFORM) \
+		--file Containerfile \
+		--build-arg GO_CONTAINER_IMAGE=$(GO_CONTAINER_IMAGE) \
+		--build-arg VERSION=$(VERSION) \
+		--annotation org.opencontainers.image.description='Oxide Cloud Controller Manager' \
+		--annotation org.opencontainers.image.source=https://github.com/oxidecomputer/oxide-cloud-controller-manager \
+		--tag $(IMAGE_FULL) \
+		--push \
+		.
 
 .PHONY: helm-set-version
 helm-set-version:
