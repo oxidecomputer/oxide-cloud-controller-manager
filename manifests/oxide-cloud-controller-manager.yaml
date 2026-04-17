@@ -165,6 +165,9 @@ spec:
           operator: "Exists"
         - key: "node-role.kubernetes.io/control-plane"
           effect: NoSchedule
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: "NoSchedule"
       containers:
       - name: oxide-cloud-controller-manager
         image: "ghcr.io/oxidecomputer/oxide-cloud-controller-manager:0.6.0"
