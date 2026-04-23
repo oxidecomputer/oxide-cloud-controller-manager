@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/oxidecomputer/oxide.go v0.9.0
+	github.com/oxidecomputer/oxide.go v0.9.1-0.20260420200835-b6f489e52089
 	k8s.io/api v0.35.4
 	k8s.io/apimachinery v0.35.4
 	k8s.io/client-go v0.35.4

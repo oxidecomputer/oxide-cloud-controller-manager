@@ -65,7 +65,7 @@ func (l *LoadBalancer) GetLoadBalancer(
 		},
 	)
 	if err != nil {
-		if strings.Contains(err.Error(), "NotFound") {
+		if errors.Is(err, oxide.ErrObjectNotFound) {
 			return nil, false, nil
 		}
 		return nil, false, fmt.Errorf(
@@ -250,7 +250,7 @@ func (l *LoadBalancer) EnsureLoadBalancerDeleted(
 		},
 	)
 	if err != nil {
-		if strings.Contains(err.Error(), "NotFound") {
+		if errors.Is(err, oxide.ErrObjectNotFound) {
 			return nil
 		}
 		return fmt.Errorf(
@@ -347,7 +347,7 @@ func (l *LoadBalancer) ensureLoadBalancer(
 		},
 	)
 	if err != nil {
-		if !strings.Contains(err.Error(), "NotFound") {
+		if !errors.Is(err, oxide.ErrObjectNotFound) {
 			return nil, fmt.Errorf(
 				"failed viewing floating ip %s: %w", name, err,
 			)

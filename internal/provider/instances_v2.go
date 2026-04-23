@@ -6,8 +6,8 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/oxidecomputer/oxide.go/oxide"
@@ -44,11 +44,11 @@ func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, 
 	if _, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
 		Instance: oxide.NameOrId(instanceID),
 	}); err != nil {
-		if strings.Contains(err.Error(), "NotFound") {
+		if errors.Is(err, oxide.ErrObjectNotFound) {
 			return false, nil
 		}
 
-		return false, fmt.Errorf("failed viewing oxide instance %s: %v", instanceID, err)
+		return false, fmt.Errorf("failed viewing oxide instance %s: %w", instanceID, err)
 	}
 
 	return true, nil
@@ -63,35 +63,27 @@ func (i *InstancesV2) InstanceMetadata(
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	// Get the instance ID, either from the provider ID or by looking up by name.
-	instanceID, err := i.getInstanceID(ctx, node)
+	// Get the instance, either from the provider ID or by looking up by name.
+	instance, err := i.getInstance(ctx, node)
 	if err != nil {
 		return nil, err
-	}
-
-	// Retrieve the instance details.
-	instance, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
-		Instance: oxide.NameOrId(instanceID),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed viewing oxide instance: %v", err)
 	}
 
 	nics, err := i.client.InstanceNetworkInterfaceList(
 		ctx,
 		oxide.InstanceNetworkInterfaceListParams{
-			Instance: oxide.NameOrId(instanceID),
+			Instance: oxide.NameOrId(instance.Id),
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed listing instance network interfaces: %v", err)
+		return nil, fmt.Errorf("failed listing instance network interfaces: %w", err)
 	}
 
 	externalIPs, err := i.client.InstanceExternalIpList(ctx, oxide.InstanceExternalIpListParams{
-		Instance: oxide.NameOrId(instanceID),
+		Instance: oxide.NameOrId(instance.Id),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed listing instance external ips: %v", err)
+		return nil, fmt.Errorf("failed listing instance external ips: %w", err)
 	}
 
 	nodeAddresses := make([]v1.NodeAddress, 0)
@@ -148,29 +140,35 @@ func (i *InstancesV2) InstanceMetadata(
 	}
 
 	return &cloudprovider.InstanceMetadata{
-		ProviderID:    NewProviderID(instanceID),
+		ProviderID:    NewProviderID(instance.Id),
 		InstanceType:  fmt.Sprintf("%d-%d", instance.Ncpus, instance.Memory/gibibyte),
 		NodeAddresses: nodeAddresses,
 	}, nil
 }
 
-// getInstanceID retrieves the instance ID either from the node's provider ID
+// getInstance retrieves the instance either from the node's provider ID
 // or by looking up the instance by name.
-func (i *InstancesV2) getInstanceID(ctx context.Context, node *v1.Node) (string, error) {
+func (i *InstancesV2) getInstance(ctx context.Context, node *v1.Node) (*oxide.Instance, error) {
+	var params oxide.InstanceViewParams
 	if node.Spec.ProviderID != "" {
-		return InstanceIDFromProviderID(node.Spec.ProviderID)
+		instanceID, err := InstanceIDFromProviderID(node.Spec.ProviderID)
+		if err != nil {
+			return nil, fmt.Errorf("failed parsing provider id %s: %w", node.Spec.ProviderID, err)
+		}
+		params = oxide.InstanceViewParams{Instance: oxide.NameOrId(instanceID)}
+	} else {
+		params = oxide.InstanceViewParams{
+			Project:  oxide.NameOrId(i.project),
+			Instance: oxide.NameOrId(node.GetName()),
+		}
 	}
 
-	// If no provider ID is set, look up the instance by name.
-	instance, err := i.client.InstanceView(ctx, oxide.InstanceViewParams{
-		Project:  oxide.NameOrId(i.project),
-		Instance: oxide.NameOrId(node.GetName()),
-	})
+	instance, err := i.client.InstanceView(ctx, params)
 	if err != nil {
-		return "", fmt.Errorf("failed viewing oxide instance by name: %v", err)
+		return nil, fmt.Errorf("failed viewing oxide instance: %w", err)
 	}
 
-	return instance.Id, nil
+	return instance, nil
 }
 
 // InstanceShutdown checks whether the provided node is shut down in Oxide.
@@ -187,7 +185,7 @@ func (i *InstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool
 		Instance: oxide.NameOrId(instanceID),
 	})
 	if err != nil {
-		return false, fmt.Errorf("failed viewing oxide instance %s: %v", instanceID, err)
+		return false, fmt.Errorf("failed viewing oxide instance %s: %w", instanceID, err)
 	}
 
 	return instance.RunState == oxide.InstanceStateStopped, nil
