@@ -37,8 +37,7 @@ jobs:
 
       - name: Check for Changes
         run: |
-          if ! git diff --quiet --exit-code; then
+          if ! git diff --exit-code; then
             echo "::error::Code is not formatted. Run 'make fmt' and commit the result."
-            git diff
             exit 1
           fi

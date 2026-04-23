@@ -1,4 +1,4 @@
-VERSION ?= v0.6.0
+VERSION ?= $(shell cat VERSION)
 GO_VERSION := $(shell go list -m -f '{{.GoVersion}}')
 GO_CONTAINER_IMAGE ?= docker.io/golang:$(GO_VERSION)
 

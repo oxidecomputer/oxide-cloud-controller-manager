@@ -130,46 +130,19 @@ podman run \
 
 == Release Process
 
-The release process is manual and runs from a developer's workstation for now.
+We create releases in GitHub Actions by pushing a tag.
 
-. Check out the revision to be released. Ensure the working copy is clean.
+. Create a pull request that bumps the version:
 
-. Build the Helm chart.
+.. Update VERSION to the new version.
+.. Run `make manifest`.
+
+. After merging the pull request, create and push a new tag:
 +
 [source,shell]
 ----
-make helm-package
+git tag $(cat VERSION)
+git push origin $(cat VERSION)
 ----
 
-. Push the Helm chart.
-+
-[source,shell]
-----
-make helm-push
-----
-
-. Build the container image.
-+
-[source,shell]
-----
-RELEASE=true make build
-----
-
-. Push the container image.
-+
-[source,shell]
-----
-RELEASE=true make push
-----
-
-. Create a GitHub release.
-
-.. Create and push a Git tag with the v-prefixed `VERSION` (e.g., vX.Y.Z).
-
-.. Create the GitHub release for the newly pushed tag. Automatically generate the release notes.
-
-. Open a pull request with the following changes.
-
-.. Update the `VERSION` within the `Makefile` to the next version.
-
-.. Run `make manifest` to generate a new `manifests/oxide-cloud-controller-manager.yaml`.
+When a new tag is pushed, the `release` workflow creates a new GitHub release, and pushes an updated Docker image and Helm chart.
