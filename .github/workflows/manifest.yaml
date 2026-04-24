@@ -22,8 +22,7 @@ jobs:
 
       - name: Check for Changes
         run: |
-          if ! git diff --quiet --exit-code manifests/; then
-            echo "::error::Generated manifest is out of date. Run 'make manifest' and commit the result."
-            git diff -- manifests/
+          if ! git diff --exit-code; then
+            echo "::error::Generated code out of date. Run 'make manifest' and commit the result."
             exit 1
           fi
