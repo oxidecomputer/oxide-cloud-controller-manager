@@ -1,16 +1,20 @@
 ARG GO_CONTAINER_IMAGE
 
 # Stage 1: Build the binary.
-FROM ${GO_CONTAINER_IMAGE} AS builder
+# Note: build under the host platform and cross-compile, rather than the
+# default of emulating the target architecture with QEMU.
+FROM --platform=$BUILDPLATFORM ${GO_CONTAINER_IMAGE} AS builder
 
 ARG VERSION
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 go build \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags "-s -w -X k8s.io/component-base/version.gitVersion=${VERSION}" \
     .
 
