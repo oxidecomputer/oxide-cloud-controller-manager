@@ -12,7 +12,6 @@ import (
 
 	"github.com/oxidecomputer/oxide.go/oxide"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
 	cloudprovider "k8s.io/cloud-provider"
 )
 
@@ -21,13 +20,17 @@ var _ cloudprovider.InstancesV2 = (*InstancesV2)(nil)
 // gibibyte is the number of bytes in a gibibyte.
 const gibibyte = 1024 * 1024 * 1024
 
+type oxideInstanceClient interface {
+	InstanceNetworkInterfaceList(context.Context, oxide.InstanceNetworkInterfaceListParams) (*oxide.InstanceNetworkInterfaceResultsPage, error)
+	InstanceExternalIpList(context.Context, oxide.InstanceExternalIpListParams) (*oxide.ExternalIpResultsPage, error)
+	InstanceView(context.Context, oxide.InstanceViewParams) (*oxide.Instance, error)
+}
+
 // InstancesV2 implements [cloudprovider.InstancesV2] to provide Oxide specific
 // instance functionality.
 type InstancesV2 struct {
-	client  *oxide.Client
+	client  oxideInstanceClient
 	project string
-
-	k8sClient kubernetes.Interface
 }
 
 // InstanceExists checks whether the provided Kubernetes node exists as an instance
@@ -45,7 +48,6 @@ func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, 
 		}
 		return false, err
 	}
-
 	return true, nil
 }
 
