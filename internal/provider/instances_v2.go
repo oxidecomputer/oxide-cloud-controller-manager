@@ -34,7 +34,7 @@ type InstancesV2 struct {
 }
 
 // InstanceExists checks whether the provided Kubernetes node exists as an instance
-// in Oxide. the Cloud Node Lifecycle Controller uses this information to determine
+// in Oxide. The cloud node lifecycle controller uses this information to determine
 // if it can delete the Node object.
 func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -51,8 +51,9 @@ func (i *InstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, 
 	return true, nil
 }
 
-// InstanceMetadata populates the metadata for the provided node, notably
-// setting its provider ID.
+// InstanceMetadata is called by the cloud node controller to initialize nodes with
+// the node.cloudprovider.kubernetes.io/uninitialized:NoSchedule taint. It returns
+// metadata for the provided node, notably its provider ID.
 func (i *InstancesV2) InstanceMetadata(
 	ctx context.Context,
 	node *v1.Node,
