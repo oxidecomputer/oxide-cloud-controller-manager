@@ -21,8 +21,14 @@ var _ cloudprovider.InstancesV2 = (*InstancesV2)(nil)
 const gibibyte = 1024 * 1024 * 1024
 
 type oxideInstanceClient interface {
-	InstanceNetworkInterfaceList(context.Context, oxide.InstanceNetworkInterfaceListParams) (*oxide.InstanceNetworkInterfaceResultsPage, error)
-	InstanceExternalIpList(context.Context, oxide.InstanceExternalIpListParams) (*oxide.ExternalIpResultsPage, error)
+	InstanceNetworkInterfaceList(
+		context.Context,
+		oxide.InstanceNetworkInterfaceListParams,
+	) (*oxide.InstanceNetworkInterfaceResultsPage, error)
+	InstanceExternalIpList(
+		context.Context,
+		oxide.InstanceExternalIpListParams,
+	) (*oxide.ExternalIpResultsPage, error)
 	InstanceView(context.Context, oxide.InstanceViewParams) (*oxide.Instance, error)
 }
 

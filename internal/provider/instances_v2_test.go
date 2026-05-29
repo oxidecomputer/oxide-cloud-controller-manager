@@ -167,21 +167,30 @@ func TestShutdown(t *testing.T) {
 	})
 }
 
-func (c *mockOxideClient) InstanceNetworkInterfaceList(context.Context, oxide.InstanceNetworkInterfaceListParams) (*oxide.InstanceNetworkInterfaceResultsPage, error) {
+func (c *mockOxideClient) InstanceNetworkInterfaceList(
+	context.Context,
+	oxide.InstanceNetworkInterfaceListParams,
+) (*oxide.InstanceNetworkInterfaceResultsPage, error) {
 	if c.InstanceNetworkInterfaceListError != nil {
 		return nil, c.InstanceNetworkInterfaceListError
 	}
 	return c.InstanceNetworkInterfaceListOutput, nil
 }
 
-func (c *mockOxideClient) InstanceExternalIpList(context.Context, oxide.InstanceExternalIpListParams) (*oxide.ExternalIpResultsPage, error) {
+func (c *mockOxideClient) InstanceExternalIpList(
+	context.Context,
+	oxide.InstanceExternalIpListParams,
+) (*oxide.ExternalIpResultsPage, error) {
 	if c.InstanceExternalIpListError != nil {
 		return nil, c.InstanceExternalIpListError
 	}
 	return c.InstanceExternalIpListOutput, nil
 }
 
-func (c *mockOxideClient) InstanceView(context.Context, oxide.InstanceViewParams) (*oxide.Instance, error) {
+func (c *mockOxideClient) InstanceView(
+	context.Context,
+	oxide.InstanceViewParams,
+) (*oxide.Instance, error) {
 	if c.InstanceViewError != nil {
 		return nil, c.InstanceViewError
 	}
