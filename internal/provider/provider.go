@@ -104,9 +104,8 @@ func (o *Oxide) Instances() (cloudprovider.Instances, bool) {
 // metadata, and determine whether they exists to facilitate cleanup.
 func (o *Oxide) InstancesV2() (cloudprovider.InstancesV2, bool) {
 	return &InstancesV2{
-		client:    o.client,
-		project:   o.project,
-		k8sClient: o.k8sClient,
+		client:  o.client,
+		project: o.project,
 	}, true
 }
 

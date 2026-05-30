@@ -96,8 +96,12 @@ helm-push: helm-package
 fmt:
 	@ echo "+ Formatting Go code..."
 	@ go tool -modfile tools/go.mod golangci-lint fmt
+	@ go tool -modfile tools/go.mod golangci-lint run --enable-only=goheader --fix
 
 .PHONY: lint
 lint:
 	@ echo "+ Running Go linters..."
 	@ go tool -modfile tools/go.mod golangci-lint run
+
+.PHONY: dev
+dev: fmt lint test
