@@ -14,9 +14,11 @@ import (
 
 	"github.com/oxidecomputer/oxide.go/oxide"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	cloudprovider "k8s.io/cloud-provider"
+	servicehelpers "k8s.io/cloud-provider/service/helpers"
 )
 
 const (
@@ -38,10 +40,33 @@ const (
 
 var _ cloudprovider.LoadBalancer = (*LoadBalancer)(nil)
 
+// oxideLoadBalancerClient is the subset of the Oxide API used by
+// [LoadBalancer]. It exists so the Oxide client can be mocked in tests.
+type oxideLoadBalancerClient interface {
+	FloatingIpView(
+		context.Context, oxide.FloatingIpViewParams,
+	) (*oxide.FloatingIp, error)
+	FloatingIpCreate(
+		context.Context, oxide.FloatingIpCreateParams,
+	) (*oxide.FloatingIp, error)
+	FloatingIpDelete(
+		context.Context, oxide.FloatingIpDeleteParams,
+	) error
+	FloatingIpAttach(
+		context.Context, oxide.FloatingIpAttachParams,
+	) (*oxide.FloatingIp, error)
+	FloatingIpDetach(
+		context.Context, oxide.FloatingIpDetachParams,
+	) (*oxide.FloatingIp, error)
+	IpPoolView(
+		context.Context, oxide.IpPoolViewParams,
+	) (*oxide.SiloIpPool, error)
+}
+
 // LoadBalancer implements [cloudprovider.LoadBalancer] by attaching a
 // single floating IP to one Kubernetes node.
 type LoadBalancer struct {
-	client    *oxide.Client
+	client    oxideLoadBalancerClient
 	project   string
 	k8sClient kubernetes.Interface
 }
@@ -89,15 +114,18 @@ func (l *LoadBalancer) GetLoadBalancer(
 		)
 	}
 
-	// Find the Kubernetes node that the floating IP is attached to.
+	// Find the Kubernetes node the floating IP is attached to. When no Kubernetes
+	// node is found we assume the node was recently removed and the floating IP has
+	// not yet been attached to a new node. In this case we return a load balancer
+	// status containing just the floating IP and rely on the next reconcile of
+	// [EnsureLoadBalancer] or [UpdateLoadBalancer] to attach the floating IP to a
+	// new node.
 	providerID := NewProviderID(floatingIP.InstanceId)
 	index := slices.IndexFunc(nodes.Items, func(node v1.Node) bool {
 		return node.Spec.ProviderID == providerID
 	})
 	if index == -1 {
-		return nil, false, fmt.Errorf(
-			"floating ip attached to non-cluster instance %q", floatingIP.InstanceId,
-		)
+		return toLoadBalancerStatus(floatingIP, nil), true, nil
 	}
 
 	return toLoadBalancerStatus(
@@ -147,12 +175,9 @@ func (l *LoadBalancer) EnsureLoadBalancer(
 		return nil, errors.New("no nodes for service")
 	}
 
-	sortedNodes := slices.Clone(nodes)
-	slices.SortStableFunc(sortedNodes, func(a, b *v1.Node) int {
-		return strings.Compare(a.Name, b.Name)
-	})
+	targetNode := selectTargetNode(nodes)
 
-	instanceID, err := InstanceIDFromProviderID(sortedNodes[0].Spec.ProviderID)
+	instanceID, err := InstanceIDFromProviderID(targetNode.Spec.ProviderID)
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching instance id from provider id: %w", err)
 	}
@@ -188,11 +213,33 @@ func (l *LoadBalancer) EnsureLoadBalancer(
 		)
 	}
 
-	return toLoadBalancerStatus(floatingIP, sortedNodes[0]), nil
+	return toLoadBalancerStatus(floatingIP, targetNode), nil
 }
 
-// UpdateLoadBalancer updates an existing load balancer by attaching the
-// floating IP to the first node ordered by name.
+// selectTargetNode returns the node that should back the floating IP. It
+// picks the first node ordered by name so that [EnsureLoadBalancer] and
+// [UpdateLoadBalancer] always converge on the same node for a given node set.
+// Callers must ensure nodes is non-empty.
+func selectTargetNode(nodes []*v1.Node) *v1.Node {
+	sortedNodes := slices.Clone(nodes)
+	slices.SortStableFunc(sortedNodes, func(a, b *v1.Node) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	return sortedNodes[0]
+}
+
+// UpdateLoadBalancer updates the backend nodes for an existing load balancer.
+// Since a floating IP is used for the implementation, this method has the
+// following additional resposibilities.
+//
+// * Attach the floating IP to the same node as [EnsureLoadBalancer]. This
+// allows both methods to converge to the same state.
+// * Patch the service status to include the current node's internal IP. This
+// handles the case when the node holding the floating IP was destroyed and the
+// floating IP was attached to a new node. Without this, the status would keep
+// advertising the previous node's internal IP and kube-proxy would program
+// nftables rules for an address that no longer receives the floating IP's
+// traffic.
 func (l *LoadBalancer) UpdateLoadBalancer(
 	ctx context.Context,
 	clusterName string,
@@ -203,12 +250,9 @@ func (l *LoadBalancer) UpdateLoadBalancer(
 		return errors.New("no nodes for service")
 	}
 
-	sortedNodes := slices.Clone(nodes)
-	slices.SortStableFunc(sortedNodes, func(a, b *v1.Node) int {
-		return strings.Compare(a.Name, b.Name)
-	})
+	targetNode := selectTargetNode(nodes)
 
-	instanceID, err := InstanceIDFromProviderID(sortedNodes[0].Spec.ProviderID)
+	instanceID, err := InstanceIDFromProviderID(targetNode.Spec.ProviderID)
 	if err != nil {
 		return fmt.Errorf(
 			"failed fetching instance id from provider id: %w", err,
@@ -229,10 +273,45 @@ func (l *LoadBalancer) UpdateLoadBalancer(
 		)
 	}
 
-	_, err = l.attachFloatingIPToInstance(
+	floatingIP, err = l.attachFloatingIPToInstance(
 		ctx, floatingIP, instanceID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return l.patchServiceStatus(
+		service, toLoadBalancerStatus(floatingIP, targetNode),
+	)
+}
+
+// patchServiceStatus patches the service's load balancer status when it differs
+// from the current status. It treats the service parameter as read-only as
+// required by [UpdateLoadBalancer].
+func (l *LoadBalancer) patchServiceStatus(
+	service *v1.Service,
+	status *v1.LoadBalancerStatus,
+) error {
+	if servicehelpers.LoadBalancerStatusEqual(
+		&service.Status.LoadBalancer, status,
+	) {
+		return nil
+	}
+
+	updated := service.DeepCopy()
+	updated.Status.LoadBalancer = *status
+
+	_, err := servicehelpers.PatchService(
+		l.k8sClient.CoreV1(), service, updated,
+	)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return fmt.Errorf(
+			"failed patching status for service %s/%s: %w",
+			service.Namespace, service.Name, err,
+		)
+	}
+
+	return nil
 }
 
 // EnsureLoadBalancerDeleted detaches and deletes the floating IP.
