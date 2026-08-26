@@ -2,12 +2,34 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directories:
-      - "/"
+    directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      go-dependencies:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "gomod"
+    directory: "/tools"
+    schedule:
+      interval: "weekly"
+    groups:
+      go-tool-dependencies:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
   - package-ecosystem: "github-actions"
-    directories:
-      - "/"
+    directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
