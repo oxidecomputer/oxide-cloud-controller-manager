@@ -158,17 +158,17 @@ spec:
       serviceAccountName: oxide-cloud-controller-manager
       priorityClassName: system-cluster-critical
       tolerations:
-        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+        - effect: NoSchedule
+          key: node.cloudprovider.kubernetes.io/uninitialized
           value: "true"
-          effect: NoSchedule
-        - key: "node-role.kubernetes.io/control-plane"
-          effect: NoSchedule
-        - key: "node-role.kubernetes.io/etcd"
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+        - effect: NoExecute
+          key: node-role.kubernetes.io/etcd
           operator: Exists
-          effect: NoExecute
-        - key: "node.kubernetes.io/not-ready"
+        - effect: NoSchedule
+          key: node.kubernetes.io/not-ready
           operator: Exists
-          effect: NoSchedule
         - key: CriticalAddonsOnly
           operator: Exists
       containers:

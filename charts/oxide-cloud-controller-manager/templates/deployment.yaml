@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "oxide-ccm.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.deployment.replicas }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "oxide-ccm.selectorLabels" . | nindent 6 }}
@@ -19,31 +19,32 @@ spec:
       hostNetwork: true
       serviceAccountName: {{ include "oxide-ccm.fullName" . }}
       priorityClassName: system-cluster-critical
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
-        - key: "node.cloudprovider.kubernetes.io/uninitialized"
-          value: "true"
-          effect: NoSchedule
-        - key: "node-role.kubernetes.io/control-plane"
-          effect: NoSchedule
-        - key: "node-role.kubernetes.io/etcd"
-          operator: Exists
-          effect: NoExecute
-        - key: "node.kubernetes.io/not-ready"
-          operator: Exists
-          effect: NoSchedule
-        - key: CriticalAddonsOnly
-          operator: Exists
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: {{ include "oxide-ccm.name" . }}
-        image: "{{ .Values.deployment.image.name }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.deployment.imagePullPolicy }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
           - "/usr/bin/oxide-cloud-controller-manager"
           - "--cloud-provider=oxide"
+          {{- range .Values.extraArgs }}
+          - {{ . | quote }}
+          {{- end }}
+        {{- with .Values.resources }}
         resources:
-          requests:
-            cpu: 100m
-            memory: 50Mi
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
           - name: OXIDE_HOST
             valueFrom:

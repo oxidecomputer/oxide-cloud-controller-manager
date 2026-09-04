@@ -1,8 +1,33 @@
-deployment:
-  replicas: 1
-  image:
-    # Fully-qualified image name, without the `:TAG` portion.
-    name: ghcr.io/oxidecomputer/oxide-cloud-controller-manager
-    # Image tag. Uses Chart.yaml's `appVersion` when empty.
-    tag: ""
-  imagePullPolicy: IfNotPresent
+replicaCount: 1
+
+image:
+  repository: ghcr.io/oxidecomputer/oxide-cloud-controller-manager
+  pullPolicy: IfNotPresent
+  # Uses Chart.yaml's `appVersion` when empty.
+  tag: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 50Mi
+
+nodeSelector: {}
+
+tolerations:
+  - key: "node.cloudprovider.kubernetes.io/uninitialized"
+    value: "true"
+    effect: NoSchedule
+  - key: "node-role.kubernetes.io/control-plane"
+    effect: NoSchedule
+  - key: "node-role.kubernetes.io/etcd"
+    operator: Exists
+    effect: NoExecute
+  - key: "node.kubernetes.io/not-ready"
+    operator: Exists
+    effect: NoSchedule
+  - key: CriticalAddonsOnly
+    operator: Exists
+
+affinity: {}
+
+extraArgs: []
