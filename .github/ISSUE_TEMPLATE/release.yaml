@@ -1,7 +1,7 @@
 name: Release
 description: Request a new release to be published.
 title: "Release: Kubernetes Cloud Controller Manager"
-projects: ["oxidecomputer/116"]
+labels: ["Kubernetes Cloud Controller Manager (CCM)", "Task"]
 body:
   - type: markdown
     attributes:
