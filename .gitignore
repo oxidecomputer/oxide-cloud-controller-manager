@@ -1,2 +1,5 @@
 # Ignore Helm packages.
 *.tgz
+
+/_artifacts/
+/dist/

@@ -82,14 +82,13 @@ kubectl create secret generic oxide-cloud-controller-manager \
   --from-literal=oxide-project=example
 ----
 
-Apply the
-link:manifests/oxide-cloud-controller-manager.yaml[oxide-cloud-controller-manager.yaml]
-Kubernetes manifest. This manifest is generated from the Helm chart in
+Apply the Kubernetes manifest attached to each GitHub release. This manifest is
+generated from the Helm chart in
 link:charts/oxide-cloud-controller-manager[charts/oxide-cloud-controller-manager].
 
 [source,shell]
 ----
-kubectl apply -f oxide-cloud-controller-manager.yaml
+kubectl apply -f https://github.com/oxidecomputer/oxide-cloud-controller-manager/releases/latest/download/oxide-cloud-controller-manager.yaml
 ----
 
 == Development
@@ -132,17 +131,10 @@ podman run \
 
 We create releases in GitHub Actions by pushing a tag.
 
-. Create a pull request that bumps the version:
-
-.. Update VERSION to the new version.
-.. Run `make manifest`.
-
-. After merging the pull request, create and push a new tag:
-+
 [source,shell]
 ----
-git tag $(cat VERSION)
-git push origin $(cat VERSION)
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ----
 
 When a new tag is pushed, the `release` workflow creates a new GitHub release, and pushes an updated Docker image and Helm chart.
