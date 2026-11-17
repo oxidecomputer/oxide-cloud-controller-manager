@@ -1,5 +1,16 @@
 replicaCount: 1
 
+hostNetwork: true
+
+rbac:
+  create: true
+
+# Secret holding a kubeconfig (key `value`) for a target cluster (when not running inside a cluster).
+kubeconfig:
+  secretName: ""
+
+additionalLabels: {}
+
 image:
   repository: ghcr.io/oxidecomputer/oxide-cloud-controller-manager
   pullPolicy: IfNotPresent
