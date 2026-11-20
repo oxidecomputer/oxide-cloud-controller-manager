@@ -1,0 +1,61 @@
+version: 2
+
+before:
+  hooks:
+    - make manifests VERSION={{ .Version }}
+
+builds:
+  - id: oxide-cloud-controller-manager
+    main: .
+    binary: oxide-cloud-controller-manager
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X k8s.io/component-base/version.gitVersion=v{{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+kos:
+  - build: oxide-cloud-controller-manager
+    base_image: "{{ .Env.KO_DEFAULTBASEIMAGE }}"
+    repositories:
+      - ghcr.io/oxidecomputer/oxide-cloud-controller-manager
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    tags:
+      - "{{ .Version }}"
+    annotations:
+      org.opencontainers.image.description: Oxide Cloud Controller Manager
+      org.opencontainers.image.source: https://github.com/oxidecomputer/oxide-cloud-controller-manager
+    bare: true
+    preserve_import_paths: false
+    creation_time: "{{ .CommitTimestamp }}"
+    ko_data_creation_time: "{{ .CommitTimestamp }}"
+
+checksum:
+  name_template: checksums.txt
+  extra_files:
+    - glob: ./_artifacts/helm/*.tgz
+    - glob: ./_artifacts/oxide-cloud-controller-manager.yaml
+
+changelog:
+  use: github-native
+
+release:
+  github:
+    owner: oxidecomputer
+    name: oxide-cloud-controller-manager
+  # Abort if the tag already has an immutable release or no permissions.
+  preflight:
+    fail_on_error: true
+  extra_files:
+    - glob: ./_artifacts/helm/*.tgz
+    - glob: ./_artifacts/oxide-cloud-controller-manager.yaml
